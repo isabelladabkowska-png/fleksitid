@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fleksitid</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap">
+<style>
+:root{--bg:#f1e2d2;--bg2:#e8c9a6;--card:#fbf3ea;--ink:#3b2019;--muted:#7d5a4c;--line:#e0c8b0;--band:#eed6bb;--acc:#b5501e;--plus:#6a7a2a;--minus:#a63a22;--zero:#3b2019;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#43272a;--bg2:#8c5237;--card:#341e1e;--ink:#f7e8d4;--muted:#d1b29c;--line:#65403a;--band:#4d2f2d;--acc:#f0a03a;--plus:#b9cf74;--minus:#ff8f6e;--zero:#f7e8d4}}
+:root[data-theme="dark"]{--bg:#43272a;--bg2:#8c5237;--card:#341e1e;--ink:#f7e8d4;--muted:#d1b29c;--line:#65403a;--band:#4d2f2d;--acc:#f0a03a;--plus:#b9cf74;--minus:#ff8f6e;--zero:#f7e8d4}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+body{margin:0;min-height:100%;background:linear-gradient(170deg,var(--bg),var(--bg2));color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;display:flex;justify-content:center;padding:28px 16px;overflow-x:hidden}
+main{width:100%;max-width:420px;position:relative;z-index:1}
+h1{font-family:Fraunces,Georgia,serif;font-size:1.9rem;margin:0 0 4px;font-weight:700}
+.lead{margin:0 0 18px;color:var(--muted)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.lbl{font-size:.9rem;color:var(--muted);margin-bottom:6px;text-align:center}
+.win{position:relative;display:flex;align-items:center;justify-content:center;height:144px;border-radius:12px;overflow:hidden}
+.win::before{content:"";position:absolute;left:0;right:0;top:48px;height:48px;background:var(--band);border-radius:10px}
+.ctl{display:flex;justify-content:center;align-items:center}
+.ctl i{width:14px}
+.arw{width:64px;height:38px;border:0;background:transparent;color:var(--muted);border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent}
+.arw:hover{background:var(--band);color:var(--ink)}
+.arw:active{transform:scale(.92)}
+.arw:focus-visible{outline:3px solid var(--acc);outline-offset:-3px}
+.arw svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.col{position:relative;height:144px;width:64px;overflow-y:scroll;scroll-snap-type:y mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:48px 0;
+-webkit-mask-image:linear-gradient(transparent,#000 34%,#000 66%,transparent);mask-image:linear-gradient(transparent,#000 34%,#000 66%,transparent)}
+.col::-webkit-scrollbar{display:none}
+.col:focus-visible{outline:3px solid var(--acc);outline-offset:-3px;border-radius:10px}
+.it{height:48px;display:flex;align-items:center;justify-content:center;scroll-snap-align:center;scroll-snap-stop:always;font-size:1.5rem;color:var(--muted);font-variant-numeric:tabular-nums;cursor:pointer;transition:color .15s,transform .15s}
+.it.on{color:var(--ink);font-weight:650;transform:scale(1.12)}
+.colon{position:relative;font-size:1.5rem;font-weight:650;width:14px;text-align:center;padding-bottom:3px}
+details{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+summary{cursor:pointer;color:var(--muted);font-size:.95rem;list-style:none;text-align:center}
+summary::-webkit-details-marker{display:none}
+summary:focus-visible{outline:3px solid var(--acc);border-radius:6px}
+details .pick{margin-top:8px}
+.result{margin-top:18px;padding-top:16px;border-top:1px solid var(--line);text-align:center}
+.big{font-family:Fraunces,Georgia,serif;font-size:4.2rem;font-weight:700;line-height:1.05;font-variant-numeric:lining-nums tabular-nums}
+.sub{color:var(--muted);margin-top:4px}
+.hint{margin-top:12px;color:var(--muted);text-align:center;font-size:.95rem}
+.colon{cursor:pointer}
+.txt{display:none;width:150px;font:inherit;font-size:1.9rem;font-weight:650;text-align:center;padding:8px;border:2px solid var(--acc);border-radius:12px;background:var(--card);color:var(--ink);font-variant-numeric:tabular-nums}
+.txt:focus-visible{outline:none}
+.win.typing .col,.win.typing .colon{display:none}
+.win.typing .txt{display:block}
+.win.typing::before{display:none}
+.train{margin-top:14px;width:100%;font:inherit;padding:12px 14px;border-radius:12px;border:1.5px solid var(--acc);background:transparent;color:var(--ink);cursor:pointer}
+.train:hover{background:var(--band)}
+.train[aria-pressed="true"]{background:var(--acc);color:var(--card);font-weight:650}
+.train:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.pos{color:var(--plus)}.neg{color:var(--minus)}.nul{color:var(--zero)}
+.cloud{position:fixed;left:0;z-index:0;pointer-events:none;color:rgba(255,247,236,.5);animation:drift linear infinite;will-change:transform}
+.cloud svg{display:block;width:100%;height:auto;fill:currentColor}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .cloud{color:rgba(255,224,196,.09)}}
+:root[data-theme="dark"] .cloud{color:rgba(255,224,196,.09)}
+@keyframes drift{from{transform:translateX(-45vw)}to{transform:translateX(115vw)}}
+@media (prefers-reduced-motion:reduce){.cloud{animation:none;transform:translateX(20vw)}}
+.leaf{position:fixed;top:-12vh;z-index:0;pointer-events:none;opacity:.8;animation:fall linear infinite;will-change:transform}
+.leaf svg{display:block;width:100%;height:100%}
+@keyframes fall{0%{transform:translate(0,0) rotate(0)}25%{transform:translate(calc(var(--dx)*.6),30vh) rotate(90deg)}50%{transform:translate(var(--dx),60vh) rotate(180deg)}75%{transform:translate(calc(var(--dx)*.3),90vh) rotate(270deg)}100%{transform:translate(calc(var(--dx)*-.5),125vh) rotate(360deg)}}
+.trees{position:fixed;left:0;right:0;bottom:0;width:100%;height:34vh;min-height:190px;z-index:0;pointer-events:none;--t1:#c4571f;--t2:#dc9a2e;--t3:#9a3a25;--t4:#b8742a;--tk:#5a3526;--g:#a8763d}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .trees{--t1:#cf5f24;--t2:#e4a03a;--t3:#a5402a;--t4:#bd7630;--tk:#35201b;--g:#5e3a24}}
+:root[data-theme="dark"] .trees{--t1:#cf5f24;--t2:#e4a03a;--t3:#a5402a;--t4:#bd7630;--tk:#35201b;--g:#5e3a24}
+@media (prefers-reduced-motion:reduce){.leaf{display:none}.col{scroll-behavior:auto}.it{transition:none}}
+</style>
+</head>
+<body>
+<main>
+<h1>Fleksitid</h1>
+<p class="lead">Rull, bruk pilene, eller trykk på tiden for å skrive den inn.</p>
+<div class="card">
+  <div class="row">
+    <div><div class="lbl">Kom på jobb</div><div class="pick" data-key="start" data-h="8" data-m="0" role="group" aria-label="Kom på jobb"></div></div>
+    <div><div class="lbl">Dro fra jobb</div><div class="pick" data-key="slutt" data-h="15" data-m="0" role="group" aria-label="Dro fra jobb"></div></div>
+  </div>
+  <details id="dagDet">
+    <summary id="dagSum">Arbeidsdag: 7:45 (vintertid). Trykk for å endre</summary>
+    <div class="pick" data-key="dag" data-h="7" data-m="45" role="group" aria-label="Lengde på arbeidsdag"></div>
+  </details>
+  <button type="button" class="train" id="train" aria-pressed="false">Trening i arbeidstid (1t)</button>
+  <div class="result" aria-live="polite">
+    <div class="big" id="res">–</div>
+    <div class="sub" id="sub"></div>
+    <div class="hint" id="hint"></div>
+  </div>
+</div>
+</main>
+<script>
+const IT=48, S={};
+const $=id=>document.getElementById(id);
+const pad=n=>String(n).padStart(2,'0');
+function makeCol(n,label,onPick,onTap){
+  // Sirkulær liste: flere kopier etter hverandre, og vi hopper stille tilbake til midtkopien når hjulet står i ro
+  let C=Math.ceil(300/n);if(C%2===0)C++;
+  const mid=(C-1)/2,tot=C*n;
+  const c=document.createElement('div');c.className='col';c.tabIndex=0;c.setAttribute('role','listbox');c.setAttribute('aria-label',label);
+  let cur=-1,tgt=null,touching=false,idle=null,tick=false;
+  for(let p=0;p<tot;p++){const d=document.createElement('div');d.className='it';d.textContent=pad(p%n);d.setAttribute('role','option');
+    d.onclick=()=>{if(p===cur)onTap();else c.scrollTo({top:p*IT,behavior:'smooth'})};c.appendChild(d)}
+  const upd=()=>{const p=Math.max(0,Math.min(tot-1,Math.round(c.scrollTop/IT)));
+    if(p!==cur){const first=cur<0,chg=first||p%n!==cur%n;
+      if(!first)c.children[cur].classList.remove('on');c.children[p].classList.add('on');cur=p;if(chg)onPick(p%n)}};
+  const jump=v=>{c.style.scrollBehavior='auto';c.scrollTop=(mid*n+v)*IT;c.style.scrollBehavior=''};
+  const recenter=()=>{idle=null;if(tgt!==null||touching)return;
+    if(cur<mid*n||cur>=(mid+1)*n){jump(cur%n);upd()}};
+  const later=()=>{clearTimeout(idle);idle=setTimeout(recenter,140)};
+  c.onscroll=()=>{if(tgt!==null&&Math.abs(c.scrollTop-tgt*IT)<2)tgt=null;
+    later();if(tick)return;tick=true;requestAnimationFrame(()=>{tick=false;upd()})};
+  c.set=v=>{tgt=null;jump(v);upd()};
+  c.step=dir=>{const base=tgt!==null?tgt:Math.round(c.scrollTop/IT);
+    const i=Math.max(0,Math.min(tot-1,base+dir));tgt=i;c.scrollTo({top:i*IT,behavior:'smooth'})};
+  c.addEventListener('pointerdown',()=>{tgt=null});
+  c.addEventListener('touchstart',()=>{tgt=null;touching=true},{passive:true});
+  c.addEventListener('touchend',()=>{touching=false;later()},{passive:true});
+  c.addEventListener('touchcancel',()=>{touching=false;later()},{passive:true});
+  // Musehjul/styreflate: ett steg om gangen
+  let acc=0,last=0;
+  c.addEventListener('wheel',e=>{e.preventDefault();
+    const now=Date.now();if(now-last>200)acc=0;
+    acc+=e.deltaY*(e.deltaMode===1?16:1);
+    if(Math.abs(acc)>=30&&now-last>70){c.step(acc>0?1:-1);acc=0;last=now}},{passive:false});
+  // Piltaster
+  c.addEventListener('keydown',e=>{if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();c.step(e.key==='ArrowDown'?1:-1)}});
+  return c;
+}
+const chev=up=>'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="'+(up?'M6 15l6-6 6 6':'M6 9l6 6 6-6')+'"/></svg>';
+function ctl(a,b,up){
+  const d=document.createElement('div');d.className='ctl';
+  const mk=(col,label)=>{const x=document.createElement('button');x.type='button';x.className='arw';x.innerHTML=chev(up);
+    x.setAttribute('aria-label',label);x.onclick=()=>col.step(up?-1:1);return x};
+  const sp=document.createElement('i');
+  d.append(mk(a,(up?'Én mer':'Én mindre')+' time'),sp,mk(b,(up?'Ett mer':'Ett mindre')+' minutt'));return d;
+}
+document.querySelectorAll('.pick').forEach(p=>{
+  const k=p.dataset.key;S[k]=[+p.dataset.h,+p.dataset.m];
+  const win=document.createElement('div');win.className='win';
+  const txt=document.createElement('input');txt.className='txt';txt.type='text';txt.inputMode='numeric';txt.autocomplete='off';txt.maxLength=5;txt.placeholder='08:00';txt.setAttribute('aria-label','Skriv inn klokkeslett');
+  const open=()=>{txt.value=pad(S[k][0])+':'+pad(S[k][1]);win.classList.add('typing');txt.focus();txt.select()};
+  let done=false;
+  const close=save=>{if(done)return;done=true;
+    if(save){const t=parse(txt.value);if(t){S[k]=t}}
+    win.classList.remove('typing');p._set();calc();setTimeout(()=>{done=false},0)};
+  txt.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();close(true)}else if(e.key==='Escape'){close(false)}});
+  txt.addEventListener('blur',()=>close(true));
+  const h=makeCol(24,'Timer',v=>{S[k][0]=v;calc()},open), m=makeCol(60,'Minutter',v=>{S[k][1]=v;calc()},open);
+  const colon=document.createElement('div');colon.className='colon';colon.textContent=':';colon.onclick=open;
+  win.append(h,colon,m,txt);
+  p.append(ctl(h,m,true),win,ctl(h,m,false));p._set=()=>{h.set(S[k][0]);m.set(S[k][1])};
+});
+function parse(v){
+  v=v.trim();let h,m;
+  if(/[:.,]/.test(v)){const a=v.split(/[:.,]/);h=parseInt(a[0],10);m=a[1]===''||a[1]===undefined?0:parseInt(a[1],10)}
+  else{const d=v.replace(/\D/g,'');if(!d)return null;
+    if(d.length<=2){h=+d;m=0}else if(d.length===3){h=+d[0];m=+d.slice(1)}else{h=+d.slice(0,2);m=+d.slice(2,4)}}
+  if(isNaN(h)||isNaN(m)||h>23||m>59)return null;return[h,m];
+}
+function initPickers(){document.querySelectorAll('.pick').forEach(p=>{if(p.offsetParent)p._set()})}
+$('dagDet').addEventListener('toggle',initPickers);
+function calc(){
+  const s=S.start[0]*60+S.start[1],e=S.slutt[0]*60+S.slutt[1],d=S.dag[0]*60+S.dag[1];
+  $('dagSum').textContent='Arbeidsdag: '+S.dag[0]+':'+pad(S.dag[1])+'. Trykk for å endre';
+  const res=$('res'),sub=$('sub'),hint=$('hint');
+  if(e<s){res.textContent='–';res.className='big';sub.textContent='Sluttid må være etter starttid';hint.textContent='';return}
+  const diff=(e-s)-d+(trening?60:0),a=Math.abs(diff);
+  res.textContent=(diff<0?'−':diff>0?'+':'')+Math.floor(a/60)+':'+pad(a%60);
+  res.className='big '+(diff<0?'neg':diff>0?'pos':'nul');
+  sub.textContent=diff===0?'Akkurat en full dag':(diff<0?'Minus ':'Pluss ')+a+' min'+(trening?' (inkl. 1 t trening)':'');
+  const g=((s+d-(trening?60:0))%1440+1440)%1440;hint.textContent='Gå kl. '+pad(Math.floor(g/60))+':'+pad(g%60)+' for å gå i null';
+}
+let trening=false;
+$('train').onclick=()=>{trening=!trening;$('train').setAttribute('aria-pressed',trening);calc()};
+initPickers();calc();
+// Trær i bakgrunnen
+(function(){
+  const cs=['--t1','--t2','--t3','--t4'];
+  const T=[[30,150,0],[120,110,1],[215,175,2],[320,120,3],[410,160,1],[510,105,0],[600,170,2],[700,125,3],[775,155,1]];
+  let s='<svg class="trees" viewBox="0 0 800 240" preserveAspectRatio="xMidYMax slice" aria-hidden="true">';
+  T.forEach(([x,h,c])=>{
+    const a='fill:var('+cs[c]+')',b='fill:var('+cs[(c+1)%4]+')';
+    s+='<rect x="'+(x-4)+'" y="'+(240-h*.55)+'" width="8" height="'+(h*.55)+'" style="fill:var(--tk)"/>';
+    s+='<circle cx="'+x+'" cy="'+(240-h*.78)+'" r="'+h*.3+'" style="'+a+'"/>';
+    s+='<circle cx="'+(x-h*.2)+'" cy="'+(240-h*.6)+'" r="'+h*.23+'" style="'+b+'"/>';
+    s+='<circle cx="'+(x+h*.2)+'" cy="'+(240-h*.62)+'" r="'+h*.22+'" style="'+a+'"/>';
+    s+='<circle cx="'+(x+h*.05)+'" cy="'+(240-h*.92)+'" r="'+h*.17+'" style="'+b+'"/>';
+  });
+  s+='<path d="M0 240V222C120 208 240 226 400 216S680 206 800 220V240Z" style="fill:var(--g)"/></svg>';
+  document.body.insertAdjacentHTML('afterbegin',s);
+})();
+// Skyer (rolige og gjennomsiktige)
+[[230,6,140,0],[170,17,110,-45],[280,27,170,-95],[140,11,95,-70]].forEach(([w,top,dur,dl])=>{
+  const c=document.createElement('div');c.className='cloud';
+  c.style.cssText='width:'+w+'px;top:'+top+'vh;animation-duration:'+dur+'s;animation-delay:'+dl+'s';
+  c.innerHTML='<svg viewBox="0 0 200 60" aria-hidden="true"><ellipse cx="100" cy="46" rx="92" ry="13"/><circle cx="58" cy="36" r="21"/><circle cx="100" cy="26" r="27"/><circle cx="142" cy="37" r="19"/></svg>';
+  document.body.insertAdjacentElement('afterbegin',c);
+});
+// Fallende løv
+const LC=['#c4571f','#dc9a2e','#9a3a25','#b8742a','#e8b04a','#cf5f24'];
+const LP='<svg viewBox="0 0 24 24"><path d="M12 1C7 5 3.5 10.5 5.5 16.5 6.5 20 9.5 22.5 12 23c2.5-.5 5.5-3 6.5-6.5C20.5 10.5 17 5 12 1Z" fill="COL"/><path d="M12 5v18M12 12l-3-3M12 15l3-3" stroke="rgba(0,0,0,.28)" stroke-width="1" fill="none"/></svg>';
+for(let i=0;i<18;i++){
+  const l=document.createElement('span');l.className='leaf';
+  const sz=16+(i*7%14);
+  l.innerHTML=LP.replace('COL',LC[i%LC.length]);
+  l.style.cssText='left:'+((i*37)%100)+'%;width:'+sz+'px;height:'+sz+'px;--dx:'+((i%2?1:-1)*(30+(i*13)%60))+'px;animation-duration:'+(13+(i*5)%11)+'s;animation-delay:'+(-(i*2.3))+'s';
+  document.body.appendChild(l);
+}
+</script>
+</body>
+</html>
