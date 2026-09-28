@@ -29,12 +29,12 @@ h1{font-family:Fraunces,Georgia,serif;font-size:1.9rem;margin:0 0 4px;font-weigh
 .arw:active{transform:scale(.92)}
 .arw:focus-visible{outline:3px solid var(--acc);outline-offset:-3px}
 .arw svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
-.col{position:relative;height:144px;width:64px;overflow-y:scroll;scroll-snap-type:y mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:48px 0;
+.col{position:relative;height:144px;width:64px;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab;
 -webkit-mask-image:linear-gradient(transparent,#000 34%,#000 66%,transparent);mask-image:linear-gradient(transparent,#000 34%,#000 66%,transparent)}
-.col::-webkit-scrollbar{display:none}
+.col:active{cursor:grabbing}
 .col:focus-visible{outline:3px solid var(--acc);outline-offset:-3px;border-radius:10px}
-.it{height:48px;display:flex;align-items:center;justify-content:center;scroll-snap-align:center;scroll-snap-stop:always;font-size:1.5rem;color:var(--muted);font-variant-numeric:tabular-nums;cursor:pointer;transition:color .15s,transform .15s}
-.it.on{color:var(--ink);font-weight:650;transform:scale(1.12)}
+.it{position:absolute;left:0;right:0;top:0;height:48px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:var(--muted);font-variant-numeric:tabular-nums;will-change:transform;transition:color .15s}
+.it.on{color:var(--ink);font-weight:650;scale:1.12}
 .colon{position:relative;font-size:1.5rem;font-weight:650;width:14px;text-align:center;padding-bottom:3px}
 details{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
 summary{cursor:pointer;color:var(--muted);font-size:.95rem;list-style:none;text-align:center}
@@ -98,29 +98,40 @@ const IT=48, S={};
 const $=id=>document.getElementById(id);
 const pad=n=>String(n).padStart(2,'0');
 function makeCol(n,label,onPick,onTap){
-  // Sirkulær liste: flere kopier etter hverandre, og vi hopper stille tilbake til midtkopien når hjulet står i ro
-  let C=Math.ceil(300/n);if(C%2===0)C++;
-  const mid=(C-1)/2,tot=C*n;
+  // Hjulet styres av fingeren direkte og låser alltid til nærmeste linje når du slipper
   const c=document.createElement('div');c.className='col';c.tabIndex=0;c.setAttribute('role','listbox');c.setAttribute('aria-label',label);
-  let cur=-1,tgt=null,touching=false,idle=null,tick=false;
-  for(let p=0;p<tot;p++){const d=document.createElement('div');d.className='it';d.textContent=pad(p%n);d.setAttribute('role','option');
-    d.onclick=()=>{if(p===cur)onTap();else c.scrollTo({top:p*IT,behavior:'smooth'})};c.appendChild(d)}
-  const upd=()=>{const p=Math.max(0,Math.min(tot-1,Math.round(c.scrollTop/IT)));
-    if(p!==cur){const first=cur<0,chg=first||p%n!==cur%n;
-      if(!first)c.children[cur].classList.remove('on');c.children[p].classList.add('on');cur=p;if(chg)onPick(p%n)}};
-  const jump=v=>{c.style.scrollBehavior='auto';c.scrollTop=(mid*n+v)*IT;c.style.scrollBehavior=''};
-  const recenter=()=>{idle=null;if(tgt!==null||touching)return;
-    if(cur<mid*n||cur>=(mid+1)*n){jump(cur%n);upd()}};
-  const later=()=>{clearTimeout(idle);idle=setTimeout(recenter,140)};
-  c.onscroll=()=>{if(tgt!==null&&Math.abs(c.scrollTop-tgt*IT)<2)tgt=null;
-    later();if(tick)return;tick=true;requestAnimationFrame(()=>{tick=false;upd()})};
-  c.set=v=>{tgt=null;jump(v);upd()};
-  c.step=dir=>{const base=tgt!==null?tgt:Math.round(c.scrollTop/IT);
-    const i=Math.max(0,Math.min(tot-1,base+dir));tgt=i;c.scrollTo({top:i*IT,behavior:'smooth'})};
-  c.addEventListener('pointerdown',()=>{tgt=null});
-  c.addEventListener('touchstart',()=>{tgt=null;touching=true},{passive:true});
-  c.addEventListener('touchend',()=>{touching=false;later()},{passive:true});
-  c.addEventListener('touchcancel',()=>{touching=false;later()},{passive:true});
+  const slots=[];for(let k=0;k<5;k++){const d=document.createElement('div');d.className='it';d.setAttribute('role','option');c.appendChild(d);slots.push(d)}
+  const mod=a=>((a%n)+n)%n;
+  let pos=0,val=-1,anim=null,tgt=null;
+  const render=()=>{const base=Math.round(pos);
+    slots.forEach((d,j)=>{const idx=base+j-2,dd=idx-pos;
+      d.textContent=pad(mod(idx));d.style.transform='translateY('+(IT+dd*IT)+'px)';d.classList.toggle('on',Math.abs(dd)<.5)});
+    const v=mod(base);if(v!==val){val=v;onPick(v)}};
+  const stop=()=>{if(anim){cancelAnimationFrame(anim);anim=null}tgt=null};
+  const goTo=t=>{stop();const from=pos,dist=t-from;
+    if(Math.abs(dist)<.001){pos=mod(t);render();return}
+    tgt=t;const dur=Math.min(380,150+60*Math.abs(dist)),t0=performance.now();
+    const f=now=>{const q=Math.min(1,(now-t0)/dur),e=1-Math.pow(1-q,3);pos=from+dist*e;render();
+      if(q<1)anim=requestAnimationFrame(f);else{anim=null;tgt=null;pos=mod(t);render()}};
+    anim=requestAnimationFrame(f)};
+  c.set=v=>{stop();pos=v;render()};
+  c.step=dir=>{const base=tgt!==null?tgt:Math.round(pos);goTo(base+dir)};
+  // Dra med finger eller mus
+  let down=false,moved=false,y0=0,p0=0,samples=[];
+  c.addEventListener('pointerdown',e=>{stop();pos=mod(pos);down=true;moved=false;y0=e.clientY;p0=pos;samples=[[e.timeStamp,e.clientY]];
+    try{c.setPointerCapture(e.pointerId)}catch(_){}});
+  c.addEventListener('pointermove',e=>{if(!down)return;const dy=e.clientY-y0;
+    if(Math.abs(dy)>4)moved=true;
+    if(moved){pos=p0-dy/IT;render();samples.push([e.timeStamp,e.clientY]);if(samples.length>6)samples.shift()}});
+  const end=(e,cancel)=>{if(!down)return;down=false;
+    if(!moved){if(cancel){goTo(Math.round(pos));return}
+      const r=c.getBoundingClientRect(),off=Math.round((e.clientY-r.top-72)/IT);
+      if(off===0)onTap();else goTo(Math.round(pos)+off);return}
+    let extra=0;const a=samples[0],b=samples[samples.length-1];
+    if(!cancel&&e.timeStamp-b[0]<80){const v=(b[1]-a[1])/Math.max(1,b[0]-a[0])*1000;extra=Math.max(-3,Math.min(3,-v/IT*.12))}
+    goTo(Math.round(pos+extra))};
+  c.addEventListener('pointerup',e=>end(e,false));
+  c.addEventListener('pointercancel',e=>end(e,true));
   // Musehjul/styreflate: ett steg om gangen
   let acc=0,last=0;
   c.addEventListener('wheel',e=>{e.preventDefault();
