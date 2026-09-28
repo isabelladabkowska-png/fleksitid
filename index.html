@@ -12,9 +12,10 @@ box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:en
 :root[data-theme="dark"]{--bg:#43272a;--bg2:#8c5237;--card:#341e1e;--ink:#f7e8d4;--muted:#d1b29c;--line:#65403a;--band:#4d2f2d;--acc:#f0a03a;--plus:#b9cf74;--minus:#ff8f6e;--zero:#f7e8d4}
 *{box-sizing:border-box}
 html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
-body{margin:0;min-height:100%;background:linear-gradient(170deg,var(--bg),var(--bg2));color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;display:flex;justify-content:center;padding:28px 16px;overflow-x:hidden}
+body{margin:0;min-height:100%;background:linear-gradient(170deg,var(--bg),var(--bg2)) fixed;color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;display:flex;justify-content:center;padding:28px 16px;overflow-x:hidden}
 main{width:100%;max-width:420px;position:relative;z-index:1}
 h1{font-family:Fraunces,Georgia,serif;font-size:1.9rem;margin:0 0 4px;font-weight:700}
+@media (min-width:900px){main{max-width:480px}h1{font-size:2.2rem}}
 .lead{margin:0 0 18px;color:var(--muted)}
 .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
@@ -64,7 +65,8 @@ details .pick{margin-top:8px}
 .leaf{position:fixed;top:-12vh;z-index:0;pointer-events:none;opacity:.8;animation:fall linear infinite;will-change:transform}
 .leaf svg{display:block;width:100%;height:100%}
 @keyframes fall{0%{transform:translate(0,0) rotate(0)}25%{transform:translate(calc(var(--dx)*.6),30vh) rotate(90deg)}50%{transform:translate(var(--dx),60vh) rotate(180deg)}75%{transform:translate(calc(var(--dx)*.3),90vh) rotate(270deg)}100%{transform:translate(calc(var(--dx)*-.5),125vh) rotate(360deg)}}
-.trees{position:fixed;left:0;right:0;bottom:0;width:100%;height:34vh;min-height:190px;z-index:0;pointer-events:none;--t1:#c4571f;--t2:#dc9a2e;--t3:#9a3a25;--t4:#b8742a;--tk:#5a3526;--g:#a8763d}
+.trees svg{flex:none;height:100%;aspect-ratio:800/240;overflow:visible}
+.trees{position:fixed;left:0;right:0;bottom:0;height:clamp(150px,24vh,260px);display:flex;justify-content:center;overflow:hidden;z-index:0;pointer-events:none;--t1:#c4571f;--t2:#dc9a2e;--t3:#9a3a25;--t4:#b8742a;--tk:#5a3526;--g:#a8763d}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .trees{--t1:#cf5f24;--t2:#e4a03a;--t3:#a5402a;--t4:#bd7630;--tk:#35201b;--g:#5e3a24}}
 :root[data-theme="dark"] .trees{--t1:#cf5f24;--t2:#e4a03a;--t3:#a5402a;--t4:#bd7630;--tk:#35201b;--g:#5e3a24}
 @media (prefers-reduced-motion:reduce){.leaf{display:none}.col{scroll-behavior:auto}.it{transition:none}}
@@ -176,21 +178,26 @@ function calc(){
 let trening=false;
 $('train').onclick=()=>{trening=!trening;$('train').setAttribute('aria-pressed',trening);calc()};
 initPickers();calc();
-// Trær i bakgrunnen
+// Trær i bakgrunnen: én flis gjentas sideveis, så trærne har samme størrelse på mobil og pc
 (function(){
   const cs=['--t1','--t2','--t3','--t4'];
-  const T=[[30,150,0],[120,110,1],[215,175,2],[320,120,3],[410,160,1],[510,105,0],[600,170,2],[700,125,3],[775,155,1]];
-  let s='<svg class="trees" viewBox="0 0 800 240" preserveAspectRatio="xMidYMax slice" aria-hidden="true">';
+  const T=[[70,150,0],[150,110,1],[240,175,2],[330,120,3],[420,160,1],[510,105,0],[595,170,2],[680,125,3],[750,140,1]];
+  let inner='';
   T.forEach(([x,h,c])=>{
     const a='fill:var('+cs[c]+')',b='fill:var('+cs[(c+1)%4]+')';
-    s+='<rect x="'+(x-4)+'" y="'+(240-h*.55)+'" width="8" height="'+(h*.55)+'" style="fill:var(--tk)"/>';
-    s+='<circle cx="'+x+'" cy="'+(240-h*.78)+'" r="'+h*.3+'" style="'+a+'"/>';
-    s+='<circle cx="'+(x-h*.2)+'" cy="'+(240-h*.6)+'" r="'+h*.23+'" style="'+b+'"/>';
-    s+='<circle cx="'+(x+h*.2)+'" cy="'+(240-h*.62)+'" r="'+h*.22+'" style="'+a+'"/>';
-    s+='<circle cx="'+(x+h*.05)+'" cy="'+(240-h*.92)+'" r="'+h*.17+'" style="'+b+'"/>';
+    inner+='<rect x="'+(x-4)+'" y="'+(240-h*.55)+'" width="8" height="'+(h*.55)+'" style="fill:var(--tk)"/>';
+    inner+='<circle cx="'+x+'" cy="'+(240-h*.78)+'" r="'+h*.3+'" style="'+a+'"/>';
+    inner+='<circle cx="'+(x-h*.2)+'" cy="'+(240-h*.6)+'" r="'+h*.23+'" style="'+b+'"/>';
+    inner+='<circle cx="'+(x+h*.2)+'" cy="'+(240-h*.62)+'" r="'+h*.22+'" style="'+a+'"/>';
+    inner+='<circle cx="'+(x+h*.05)+'" cy="'+(240-h*.92)+'" r="'+h*.17+'" style="'+b+'"/>';
   });
-  s+='<path d="M0 240V222C120 208 240 226 400 216S680 206 800 220V240Z" style="fill:var(--g)"/></svg>';
-  document.body.insertAdjacentHTML('afterbegin',s);
+  inner+='<path d="M-2 240V222C130 208 250 228 400 218S680 208 802 222V240Z" style="fill:var(--g)"/>';
+  const tile='<svg viewBox="0 0 800 240" aria-hidden="true">'+inner+'</svg>';
+  const box=document.createElement('div');box.className='trees';box.setAttribute('aria-hidden','true');
+  document.body.insertAdjacentElement('afterbegin',box);
+  const fill=()=>{box.innerHTML=tile;const w=box.firstChild.getBoundingClientRect().width||600;
+    let n=Math.ceil(innerWidth/w)+1;if(n%2===0)n++;box.innerHTML=tile.repeat(n)};
+  fill();addEventListener('resize',fill);
 })();
 // Skyer (rolige og gjennomsiktige)
 [[230,6,140,0],[170,17,110,-45],[280,27,170,-95],[140,11,95,-70]].forEach(([w,top,dur,dl])=>{
